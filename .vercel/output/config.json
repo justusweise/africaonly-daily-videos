@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "routes": [
+    { "src": "/videos.json", "dest": "/videos.json" },
+    { "src": "/(.*)", "dest": "/index.html" }
+  ]
+}

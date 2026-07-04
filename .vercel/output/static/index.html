@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Africa Only – Daily Random Videos</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0b0b0c;
+      --surface: #151618;
+      --text: #f4f4f5;
+      --muted: #a1a1aa;
+      --accent: #f59e0b;
+      --accent-2: #10b981;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+    }
+    header {
+      text-align: center;
+      padding: 3rem 1rem 2rem;
+      background: radial-gradient(ellipse at top, rgba(245,158,11,0.15), transparent 60%);
+    }
+    header h1 {
+      margin: 0;
+      font-size: clamp(2rem, 6vw, 3.5rem);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+    }
+    header h1 span {
+      background: linear-gradient(90deg, var(--accent), var(--accent-2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    header p {
+      margin: 0.75rem 0 0;
+      color: var(--muted);
+      font-size: 1.05rem;
+    }
+    .meta {
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.875rem;
+      margin-bottom: 2rem;
+    }
+    main {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 1rem 4rem;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 1.5rem;
+    }
+    .card {
+      background: var(--surface);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 1rem;
+      overflow: hidden;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.35);
+    }
+    .video-wrap {
+      position: relative;
+      padding-bottom: 56.25%;
+      height: 0;
+      background: #000;
+    }
+    .video-wrap iframe {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      border: 0;
+    }
+    .card-content {
+      padding: 1.25rem;
+    }
+    .card-content h2 {
+      margin: 0 0 0.5rem;
+      font-size: 1.1rem;
+      font-weight: 600;
+      line-height: 1.35;
+    }
+    .card-content p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+    .card-content a {
+      display: inline-block;
+      margin-top: 0.75rem;
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+    .card-content a:hover {
+      text-decoration: underline;
+    }
+    footer {
+      text-align: center;
+      padding: 2rem 1rem;
+      color: var(--muted);
+      font-size: 0.85rem;
+      border-top: 1px solid rgba(255,255,255,0.06);
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .card { transition: none; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Africa <span>Only</span></h1>
+    <p>Jeden Tag 2 neue zufällige Videos aus und über Afrika.</p>
+  </header>
+
+  <p class="meta" id="date-line">Aktualisiert am …</p>
+
+  <main>
+    <div class="grid" id="video-grid">
+      <!-- Videos werden per JS eingefügt -->
+    </div>
+  </main>
+
+  <footer>
+    Videos werden automatisch täglich erneuert. Bereitgestellt durch Africa Only Daily.
+  </footer>
+
+  <script>
+    fetch('videos.json')
+      .then(r => r.json())
+      .then(data => {
+        const grid = document.getElementById('video-grid');
+        const dateLine = document.getElementById('date-line');
+
+        if (data.updated) {
+          const d = new Date(data.updated);
+          dateLine.textContent = 'Aktualisiert am ' + d.toLocaleDateString('de-DE', {
+            day: '2-digit', month: 'long', year: 'numeric'
+          });
+        }
+
+        (data.videos || []).forEach(video => {
+          const card = document.createElement('article');
+          card.className = 'card';
+          card.innerHTML = `
+            <div class="video-wrap">
+              <iframe src="https://www.youtube-nocookie.com/embed/${video.id}" title="${escapeHtml(video.title)}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen loading="lazy"></iframe>
+            </div>
+            <div class="card-content">
+              <h2>${escapeHtml(video.title)}</h2>
+              <p>${escapeHtml(video.description || '')}</p>
+              <a href="https://www.youtube.com/watch?v=${video.id}" target="_blank" rel="noopener">Auf YouTube ansehen →</a>
+            </div>
+          `;
+          grid.appendChild(card);
+        });
+      })
+      .catch(err => {
+        document.getElementById('video-grid').innerHTML = '<p style="color:var(--muted);text-align:center;">Videos konnten nicht geladen werden. Bitte später erneut versuchen.</p>';
+        console.error(err);
+      });
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+  </script>
+</body>
+</html>
